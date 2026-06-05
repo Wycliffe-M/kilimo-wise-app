@@ -34,6 +34,7 @@ const HASH: Record<Screen, string> = {
 };
 
 function screenFromHash(hash: string): Screen | null {
+  if (hash === "#/" || hash === "#" || !hash) return "onboard";
   if (hash.startsWith("#/dashboard")) return "dashboard";
   if (hash.startsWith("#/input") || hash.startsWith("#/farm")) return "input";
   if (hash.startsWith("#/welcome")) return "onboard";
