@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build --base=/kilimo-wise-app/",
-    "build:dev": "vite build --mode development --base=/kilimo-wise-app/",
+    "build": "vite build",
+    "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write ."
