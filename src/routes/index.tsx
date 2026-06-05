@@ -34,7 +34,7 @@ function App() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [farm, setFarm] = useState<Farm | null>(null);
   const [plan, setPlan] = useState<Plan | null>(null);
-  const [tab, setTab] = useState<Tab>("timeline");
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [killed, setKilled] = useState(false);
