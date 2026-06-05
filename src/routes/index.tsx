@@ -29,13 +29,22 @@ type Plan = { timeline: string; water: string; market: string };
 
 const HASH: Record<Screen, string> = {
   onboard: "#/welcome",
-  input: "#/farm",
+  input: "#/input",
   dashboard: "#/dashboard",
 };
 
+function screenFromHash(hash: string): Screen | null {
+  if (hash.startsWith("#/dashboard")) return "dashboard";
+  if (hash.startsWith("#/input") || hash.startsWith("#/farm")) return "input";
+  if (hash.startsWith("#/welcome")) return "onboard";
+  return null;
+}
 
 function App() {
-  const [screen, setScreenState] = useState<Screen>("onboard");
+  const [screen, setScreenState] = useState<Screen>(() => {
+    if (typeof window === "undefined") return "onboard";
+    return screenFromHash(window.location.hash) ?? "onboard";
+  });
   const [fade, setFade] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [farm, setFarm] = useState<Farm | null>(null);
@@ -48,33 +57,27 @@ function App() {
   const setScreen = useCallback((s: Screen) => {
     setFade(false);
     window.setTimeout(() => {
-      setScreenState(s);
-      if (typeof window !== "undefined") {
-        if (window.location.hash !== HASH[s]) {
-          window.history.replaceState(null, "", HASH[s]);
-        }
+      if (typeof window !== "undefined" && window.location.hash !== HASH[s]) {
+        window.history.replaceState(null, "", HASH[s]);
       }
+      setScreenState(s);
       setFade(true);
     }, 140);
   }, []);
 
-  // Hash sync (client-only hash router)
+  // Hash sync — listen for back/forward, no gating that blocks transitions
   useEffect(() => {
-    const apply = () => {
-      const h = window.location.hash;
-      let next: Screen = "onboard";
-      if (h.startsWith("#/dashboard") && plan) next = "dashboard";
-      else if (h.startsWith("#/farm") && profile) next = "input";
-      else if (profile) next = "input";
-      else next = "onboard";
-      setScreenState(next);
-    };
+    if (typeof window === "undefined") return;
     if (!window.location.hash) {
       window.history.replaceState(null, "", HASH["onboard"]);
     }
-    window.addEventListener("hashchange", apply);
-    return () => window.removeEventListener("hashchange", apply);
-  }, [profile, plan]);
+    const onHash = () => {
+      const next = screenFromHash(window.location.hash);
+      if (next) setScreenState(next);
+    };
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
 
   const handleProfile = (p: Profile) => {
     setProfile(p);
