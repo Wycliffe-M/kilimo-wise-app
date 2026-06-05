@@ -34,6 +34,7 @@ const HASH: Record<Screen, string> = {
 };
 
 function screenFromHash(hash: string): Screen | null {
+  if (hash === "#/" || hash === "#" || !hash) return "onboard";
   if (hash.startsWith("#/dashboard")) return "dashboard";
   if (hash.startsWith("#/input") || hash.startsWith("#/farm")) return "input";
   if (hash.startsWith("#/welcome")) return "onboard";
@@ -41,10 +42,7 @@ function screenFromHash(hash: string): Screen | null {
 }
 
 function App() {
-  const [screen, setScreenState] = useState<Screen>(() => {
-    if (typeof window === "undefined") return "onboard";
-    return screenFromHash(window.location.hash) ?? "onboard";
-  });
+  const [screen, setScreenState] = useState<Screen>("onboard");
   const [fade, setFade] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [farm, setFarm] = useState<Farm | null>(null);
@@ -65,11 +63,15 @@ function App() {
     }, 140);
   }, []);
 
-  // Hash sync — listen for back/forward, no gating that blocks transitions
+  // Hash sync — initialise from hash and listen for back/forward
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (!window.location.hash) {
+    const hash = window.location.hash;
+    if (!hash || hash === "#" || hash === "#/") {
       window.history.replaceState(null, "", HASH["onboard"]);
+    } else {
+      const next = screenFromHash(hash);
+      if (next && next !== screen) setScreenState(next);
     }
     const onHash = () => {
       const next = screenFromHash(window.location.hash);
@@ -77,6 +79,7 @@ function App() {
     };
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleProfile = (p: Profile) => {
