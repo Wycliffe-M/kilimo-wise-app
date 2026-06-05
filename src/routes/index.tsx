@@ -55,32 +55,11 @@ function App() {
   const setScreen = useCallback((s: Screen) => {
     setFade(false);
     window.setTimeout(() => {
-      if (typeof window !== "undefined" && window.location.hash !== HASH[s]) {
-        window.history.replaceState(null, "", HASH[s]);
-      }
       setScreenState(s);
       setFade(true);
     }, 140);
   }, []);
 
-  // Hash sync — initialise from hash and listen for back/forward
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const hash = window.location.hash;
-    if (!hash || hash === "#" || hash === "#/") {
-      window.history.replaceState(null, "", HASH["onboard"]);
-    } else {
-      const next = screenFromHash(hash);
-      if (next && next !== screen) setScreenState(next);
-    }
-    const onHash = () => {
-      const next = screenFromHash(window.location.hash);
-      if (next) setScreenState(next);
-    };
-    window.addEventListener("hashchange", onHash);
-    return () => window.removeEventListener("hashchange", onHash);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const handleProfile = (p: Profile) => {
     setProfile(p);
