@@ -27,19 +27,6 @@ type Profile = { name: string; email: string };
 type Farm = { county: string; crop: string; acres: number; water: string };
 type Plan = { timeline: string; water: string; market: string };
 
-const HASH: Record<Screen, string> = {
-  onboard: "#/welcome",
-  input: "#/input",
-  dashboard: "#/dashboard",
-};
-
-function screenFromHash(hash: string): Screen | null {
-  if (hash === "#/" || hash === "#" || !hash) return "onboard";
-  if (hash.startsWith("#/dashboard")) return "dashboard";
-  if (hash.startsWith("#/input") || hash.startsWith("#/farm")) return "input";
-  if (hash.startsWith("#/welcome")) return "onboard";
-  return null;
-}
 
 function App() {
   const [screen, setScreenState] = useState<Screen>("onboard");
