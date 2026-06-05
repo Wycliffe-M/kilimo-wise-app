@@ -33,14 +33,6 @@ const HASH: Record<Screen, string> = {
   dashboard: "#/dashboard",
 };
 
-function screenFromHash(): Screen {
-  if (typeof window === "undefined") return "onboard";
-  const h = window.location.hash;
-  if (h.startsWith("#/dashboard")) return "dashboard";
-  if (h.startsWith("#/farm")) return "farm" as Screen, "input";
-  if (h.startsWith("#/farm")) return "input";
-  return "onboard";
-}
 
 function App() {
   const [screen, setScreenState] = useState<Screen>("onboard");
