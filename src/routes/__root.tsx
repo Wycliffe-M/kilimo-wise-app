@@ -77,14 +77,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "Kilimo wise" },
+      { name: "description", content: "KilimoSmart Planner is a web app for Kenyan farmers, offering personalized planting, water, and market advice." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "Kilimo wise" },
+      { property: "og:description", content: "KilimoSmart Planner is a web app for Kenyan farmers, offering personalized planting, water, and market advice." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Kilimo wise" },
+      { name: "twitter:description", content: "KilimoSmart Planner is a web app for Kenyan farmers, offering personalized planting, water, and market advice." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f2894d28-3e54-46aa-b630-d51a0722cc4a/id-preview-77301cdb--fd5eadd6-ff18-4fc4-9ede-be4ba5f1b3d8.lovable.app-1780671056072.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f2894d28-3e54-46aa-b630-d51a0722cc4a/id-preview-77301cdb--fd5eadd6-ff18-4fc4-9ede-be4ba5f1b3d8.lovable.app-1780671056072.png" },
     ],
     links: [
       {
