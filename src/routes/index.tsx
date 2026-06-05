@@ -345,15 +345,13 @@ function FarmInput({
 }
 
 function Dashboard({
-  farm, plan, tab, setTab, onKill,
+  farm, plan, onKill,
 }: {
   farm: Farm;
   plan: Plan;
-  tab: Tab;
-  setTab: (t: Tab) => void;
   onKill: () => void;
 }) {
-  const content = tab === "timeline" ? plan.timeline : tab === "water" ? plan.water : plan.market;
+  const [activeTab, setActiveTab] = useState<Tab>("timeline");
   return (
     <div className="space-y-6">
       <Card className="p-5">
@@ -365,17 +363,29 @@ function Dashboard({
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <TabBtn active={tab === "timeline"} onClick={() => setTab("timeline")} icon={<CalendarDays className="h-4 w-4" />}>Planting Timeline</TabBtn>
-            <TabBtn active={tab === "water"} onClick={() => setTab("water")} icon={<Droplets className="h-4 w-4" />}>Water Management</TabBtn>
-            <TabBtn active={tab === "market"} onClick={() => setTab("market")} icon={<TrendingUp className="h-4 w-4" />}>Market Outlook</TabBtn>
+            <TabBtn active={activeTab === "timeline"} onClick={() => setActiveTab("timeline")} icon={<CalendarDays className="h-4 w-4" />}>Planting Timeline</TabBtn>
+            <TabBtn active={activeTab === "water"} onClick={() => setActiveTab("water")} icon={<Droplets className="h-4 w-4" />}>Water Management</TabBtn>
+            <TabBtn active={activeTab === "market"} onClick={() => setActiveTab("market")} icon={<TrendingUp className="h-4 w-4" />}>Market Outlook</TabBtn>
           </div>
         </div>
       </Card>
 
       <Card className="p-6">
-        <article key={tab} className="prose prose-sm max-w-none animate-[fadein_.25s_ease] prose-headings:text-foreground prose-strong:text-foreground prose-p:text-foreground/85 prose-li:text-foreground/85">
-          {content ? <ReactMarkdown>{content}</ReactMarkdown> : <p className="text-muted-foreground">No content available for this section.</p>}
-        </article>
+        {activeTab === "timeline" && (
+          <article className="prose prose-sm max-w-none animate-[fadein_.25s_ease] prose-headings:text-foreground prose-strong:text-foreground prose-p:text-foreground/85 prose-li:text-foreground/85">
+            {plan.timeline ? <ReactMarkdown>{plan.timeline}</ReactMarkdown> : <p className="text-muted-foreground">No timeline content available.</p>}
+          </article>
+        )}
+        {activeTab === "water" && (
+          <article className="prose prose-sm max-w-none animate-[fadein_.25s_ease] prose-headings:text-foreground prose-strong:text-foreground prose-p:text-foreground/85 prose-li:text-foreground/85">
+            {plan.water ? <ReactMarkdown>{plan.water}</ReactMarkdown> : <p className="text-muted-foreground">No water management content available.</p>}
+          </article>
+        )}
+        {activeTab === "market" && (
+          <article className="prose prose-sm max-w-none animate-[fadein_.25s_ease] prose-headings:text-foreground prose-strong:text-foreground prose-p:text-foreground/85 prose-li:text-foreground/85">
+            {plan.market ? <ReactMarkdown>{plan.market}</ReactMarkdown> : <p className="text-muted-foreground">No market outlook content available.</p>}
+          </article>
+        )}
       </Card>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
