@@ -61,7 +61,6 @@ function App() {
     try {
       const res = await generatePlan({ data: { name: profile!.name, ...f } });
       setPlan(res);
-      setTab("timeline");
       setScreen("dashboard");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to generate plan");
@@ -95,8 +94,6 @@ function App() {
           <Dashboard
             farm={farm}
             plan={plan}
-            tab={tab}
-            setTab={setTab}
             onKill={killSwitch}
           />
         )}
