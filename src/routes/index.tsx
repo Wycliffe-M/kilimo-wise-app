@@ -31,13 +31,55 @@ type Plan = { timeline: string; water: string; market: string };
 function App() {
   const [screen, setScreenState] = useState<Screen>("onboard");
   const [fade, setFade] = useState(true);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [farm, setFarm] = useState<Farm | null>(null);
+  const [profile, setProfileState] = useState<Profile | null>(null);
+  const [farm, setFarmState] = useState<Farm | null>(null);
   const [plan, setPlan] = useState<Plan | null>(null);
-  
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [killed, setKilled] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+
+  // Restore from localStorage on mount
+  useEffect(() => {
+    try {
+      const p = localStorage.getItem("kilimo_profile");
+      const f = localStorage.getItem("kilimo_farm");
+      if (p) {
+        const parsed = JSON.parse(p) as Profile;
+        setProfileState(parsed);
+      }
+      if (f) {
+        const parsed = JSON.parse(f) as Farm;
+        setFarmState(parsed);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const setProfile = useCallback((p: Profile | null) => {
+    setProfileState(p);
+    if (typeof window !== "undefined") {
+      if (p) localStorage.setItem("kilimo_profile", JSON.stringify(p));
+      else localStorage.removeItem("kilimo_profile");
+    }
+  }, []);
+
+  const setFarm = useCallback((f: Farm | null) => {
+    setFarmState(f);
+    if (typeof window !== "undefined") {
+      if (f) localStorage.setItem("kilimo_farm", JSON.stringify(f));
+      else localStorage.removeItem("kilimo_farm");
+    }
+  }, []);
+
+  // Cooldown countdown
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const id = window.setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => window.clearTimeout(id);
+  }, [cooldown]);
 
   const setScreen = useCallback((s: Screen) => {
     setFade(false);
@@ -66,12 +108,19 @@ function App() {
       setError(e instanceof Error ? e.message : "Failed to generate plan");
     } finally {
       setLoading(false);
+      setCooldown(10);
     }
   };
 
   const killSwitch = () => {
     setPlan(null);
     setKilled(true);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("kilimo_profile");
+      localStorage.removeItem("kilimo_farm");
+    }
+    setProfileState(null);
+    setFarmState(null);
     setScreen("input");
   };
 
