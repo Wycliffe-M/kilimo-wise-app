@@ -39,12 +39,11 @@ Produce three sections:
 3) "market": financial roadmap — projected harvest window, expected KES/kg ranges, warnings about middleman/broker exploitation, and Chama/SACCO savings strategies.`;
 
     const { text } = await generateText({
-      model: gateway("google/gemini-3-flash-preview"),
+      model: gateway(AI_MODEL),
       system,
       prompt: user,
     });
 
-    // Try to parse JSON. Strip code fences if present.
     const cleaned = text.trim().replace(/^```(?:json)?/i, "").replace(/```$/,"").trim();
     try {
       const parsed = JSON.parse(cleaned);
@@ -54,7 +53,6 @@ Produce three sections:
         market: String(parsed.market ?? ""),
       };
     } catch {
-      // Fallback: return all in timeline
-      return { timeline: text, water: "", market: "" };
+      throw new Error("The AI returned an unexpected format. Please try again.");
     }
   });
