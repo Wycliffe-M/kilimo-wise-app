@@ -4,7 +4,7 @@ import ReactMarkdown from "react-markdown";
 import {
   Sprout, Leaf, Droplets, TrendingUp, ShieldCheck, Activity,
   Lock, Power, MapPin, Wheat, Tractor, CalendarDays, CircleAlert,
-  CheckCircle2, Loader2,
+  CheckCircle2, Loader2, Share2,
 } from "lucide-react";
 import { COUNTIES, WATER_SOURCES, getCropsForCounty, getEcoZone } from "@/lib/kilimo-data";
 import { generatePlan } from "@/lib/kilimo.functions";
@@ -31,13 +31,55 @@ type Plan = { timeline: string; water: string; market: string };
 function App() {
   const [screen, setScreenState] = useState<Screen>("onboard");
   const [fade, setFade] = useState(true);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [farm, setFarm] = useState<Farm | null>(null);
+  const [profile, setProfileState] = useState<Profile | null>(null);
+  const [farm, setFarmState] = useState<Farm | null>(null);
   const [plan, setPlan] = useState<Plan | null>(null);
-  
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [killed, setKilled] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+
+  // Restore from localStorage on mount
+  useEffect(() => {
+    try {
+      const p = localStorage.getItem("kilimo_profile");
+      const f = localStorage.getItem("kilimo_farm");
+      if (p) {
+        const parsed = JSON.parse(p) as Profile;
+        setProfileState(parsed);
+      }
+      if (f) {
+        const parsed = JSON.parse(f) as Farm;
+        setFarmState(parsed);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const setProfile = useCallback((p: Profile | null) => {
+    setProfileState(p);
+    if (typeof window !== "undefined") {
+      if (p) localStorage.setItem("kilimo_profile", JSON.stringify(p));
+      else localStorage.removeItem("kilimo_profile");
+    }
+  }, []);
+
+  const setFarm = useCallback((f: Farm | null) => {
+    setFarmState(f);
+    if (typeof window !== "undefined") {
+      if (f) localStorage.setItem("kilimo_farm", JSON.stringify(f));
+      else localStorage.removeItem("kilimo_farm");
+    }
+  }, []);
+
+  // Cooldown countdown
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const id = window.setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => window.clearTimeout(id);
+  }, [cooldown]);
 
   const setScreen = useCallback((s: Screen) => {
     setFade(false);
@@ -66,12 +108,19 @@ function App() {
       setError(e instanceof Error ? e.message : "Failed to generate plan");
     } finally {
       setLoading(false);
+      setCooldown(10);
     }
   };
 
   const killSwitch = () => {
     setPlan(null);
     setKilled(true);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("kilimo_profile");
+      localStorage.removeItem("kilimo_farm");
+    }
+    setProfileState(null);
+    setFarmState(null);
     setScreen("input");
   };
 
@@ -88,6 +137,7 @@ function App() {
             loading={loading}
             error={error}
             killed={killed}
+            cooldown={cooldown}
           />
         )}
         {screen === "dashboard" && plan && farm && (
@@ -234,18 +284,28 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
+const LOADING_MESSAGES = [
+  "Consulting the rains calendar…",
+  "Checking your county's eco-zone…",
+  "Mapping irrigation options…",
+  "Calculating market windows…",
+  "Finalising your farm plan…",
+];
+
 function FarmInput({
-  onSubmit, loading, error, killed,
+  onSubmit, loading, error, killed, cooldown,
 }: {
   onSubmit: (f: Farm) => void;
   loading: boolean;
   error: string | null;
   killed: boolean;
+  cooldown: number;
 }) {
   const [county, setCounty] = useState<string>("");
   const [crop, setCrop] = useState<string>("");
   const [acres, setAcres] = useState<string>("");
   const [water, setWater] = useState<string>("");
+  const [msgIdx, setMsgIdx] = useState(0);
 
   const crops = useMemo(() => (county ? getCropsForCounty(county) : []), [county]);
   const zone = county ? getEcoZone(county) : null;
@@ -253,6 +313,14 @@ function FarmInput({
   const valid = county && crop && water && acresNum > 0;
 
   useEffect(() => { setCrop(""); }, [county]);
+
+  useEffect(() => {
+    if (!loading) { setMsgIdx(0); return; }
+    const id = window.setInterval(() => {
+      setMsgIdx((i) => (i + 1) % LOADING_MESSAGES.length);
+    }, 2000);
+    return () => window.clearInterval(id);
+  }, [loading]);
 
   return (
     <div className="space-y-6">
@@ -315,27 +383,35 @@ function FarmInput({
           </div>
         )}
 
-        <div className="mt-6 flex items-center justify-between gap-4">
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
           <div className="text-xs text-muted-foreground">All values are processed locally in your browser session.</div>
-          <button
-            disabled={!valid || loading}
-            onClick={() => onSubmit({ county, crop, acres: acresNum, water })}
-            className="btn-primary inline-flex items-center gap-2"
-          >
-            {loading ? (
-              <><Loader2 className="h-4 w-4 animate-spin" /> Consulting the agronomist…</>
-            ) : (
-              <><Wheat className="h-4 w-4" /> Generate Climate-Smart Calendar</>
+          <div className="flex flex-col items-end gap-1">
+            <button
+              disabled={!valid || loading || cooldown > 0}
+              onClick={() => onSubmit({ county, crop, acres: acresNum, water })}
+              className="btn-primary inline-flex items-center gap-2"
+            >
+              {loading ? (
+                <><Loader2 className="h-4 w-4 animate-spin" /> Consulting the agronomist…</>
+              ) : (
+                <><Wheat className="h-4 w-4" /> Generate Climate-Smart Calendar</>
+              )}
+            </button>
+            {cooldown > 0 && !loading && (
+              <span className="text-xs text-muted-foreground">Please wait {cooldown}s before trying again.</span>
             )}
-          </button>
+          </div>
         </div>
       </Card>
 
       {loading && (
-        <Card className="flex items-center justify-center gap-3 p-10">
-          <Tractor className="h-8 w-8 animate-bounce text-primary" />
-          <Leaf className="h-6 w-6 animate-pulse text-accent" />
-          <span className="text-sm text-muted-foreground">Tilling the data… preparing your shamba calendar.</span>
+        <Card className="flex flex-col items-center justify-center gap-3 p-10">
+          <div className="flex items-center gap-3">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <Tractor className="h-7 w-7 animate-bounce text-primary" />
+            <Leaf className="h-6 w-6 animate-pulse text-accent" />
+          </div>
+          <span className="text-sm text-muted-foreground transition-opacity duration-300">{LOADING_MESSAGES[msgIdx]}</span>
         </Card>
       )}
 
@@ -352,6 +428,20 @@ function Dashboard({
   onKill: () => void;
 }) {
   const [activeTab, setActiveTab] = useState<Tab>("timeline");
+
+  const tabMeta: Record<Tab, { title: string; content: string }> = {
+    timeline: { title: "Planting Timeline", content: plan.timeline },
+    water: { title: "Water Management", content: plan.water },
+    market: { title: "Market Outlook", content: plan.market },
+  };
+
+  const shareOnWhatsApp = (tab: Tab) => {
+    const meta = tabMeta[tab];
+    const summary = (meta.content || "").slice(0, 300);
+    const text = `KilimoSmart Planner — ${meta.title}\nFarm: ${farm.crop}, ${farm.acres} acres, ${farm.county}\n\n${summary}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
+  };
+
   return (
     <div className="space-y-6">
       <Card className="p-5">
@@ -371,22 +461,23 @@ function Dashboard({
       </Card>
 
       <Card className="p-6">
-        {activeTab === "timeline" && (
-          <article className="prose prose-sm max-w-none animate-[fadein_.25s_ease] prose-headings:text-foreground prose-strong:text-foreground prose-p:text-foreground/85 prose-li:text-foreground/85">
-            {plan.timeline ? <ReactMarkdown>{plan.timeline}</ReactMarkdown> : <p className="text-muted-foreground">No timeline content available.</p>}
-          </article>
-        )}
-        {activeTab === "water" && (
-          <article className="prose prose-sm max-w-none animate-[fadein_.25s_ease] prose-headings:text-foreground prose-strong:text-foreground prose-p:text-foreground/85 prose-li:text-foreground/85">
-            {plan.water ? <ReactMarkdown>{plan.water}</ReactMarkdown> : <p className="text-muted-foreground">No water management content available.</p>}
-          </article>
-        )}
-        {activeTab === "market" && (
-          <article className="prose prose-sm max-w-none animate-[fadein_.25s_ease] prose-headings:text-foreground prose-strong:text-foreground prose-p:text-foreground/85 prose-li:text-foreground/85">
-            {plan.market ? <ReactMarkdown>{plan.market}</ReactMarkdown> : <p className="text-muted-foreground">No market outlook content available.</p>}
-          </article>
-        )}
+        {(["timeline","water","market"] as Tab[]).map((t) => activeTab === t && (
+          <div key={t} className="animate-[fadein_.25s_ease]">
+            <div className="mb-4 flex justify-end">
+              <button
+                onClick={() => shareOnWhatsApp(t)}
+                className="inline-flex items-center gap-2 rounded-full border border-[oklch(0.62_0.17_150)] bg-[oklch(0.62_0.17_150)] px-3 py-1.5 text-xs font-semibold text-white shadow-[var(--shadow-card)] transition hover:brightness-110"
+              >
+                <Share2 className="h-3.5 w-3.5" /> Share on WhatsApp
+              </button>
+            </div>
+            <article className="prose prose-sm max-w-none prose-headings:text-foreground prose-strong:text-foreground prose-p:text-foreground/85 prose-li:text-foreground/85">
+              {tabMeta[t].content ? <ReactMarkdown>{tabMeta[t].content}</ReactMarkdown> : <p className="text-muted-foreground">No {tabMeta[t].title.toLowerCase()} content available.</p>}
+            </article>
+          </div>
+        ))}
       </Card>
+
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <AuditCard
