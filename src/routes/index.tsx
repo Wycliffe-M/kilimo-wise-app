@@ -137,6 +137,7 @@ function App() {
             loading={loading}
             error={error}
             killed={killed}
+            cooldown={cooldown}
           />
         )}
         {screen === "dashboard" && plan && farm && (
