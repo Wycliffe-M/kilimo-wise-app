@@ -284,18 +284,28 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
+const LOADING_MESSAGES = [
+  "Consulting the rains calendar…",
+  "Checking your county's eco-zone…",
+  "Mapping irrigation options…",
+  "Calculating market windows…",
+  "Finalising your farm plan…",
+];
+
 function FarmInput({
-  onSubmit, loading, error, killed,
+  onSubmit, loading, error, killed, cooldown,
 }: {
   onSubmit: (f: Farm) => void;
   loading: boolean;
   error: string | null;
   killed: boolean;
+  cooldown: number;
 }) {
   const [county, setCounty] = useState<string>("");
   const [crop, setCrop] = useState<string>("");
   const [acres, setAcres] = useState<string>("");
   const [water, setWater] = useState<string>("");
+  const [msgIdx, setMsgIdx] = useState(0);
 
   const crops = useMemo(() => (county ? getCropsForCounty(county) : []), [county]);
   const zone = county ? getEcoZone(county) : null;
@@ -303,6 +313,14 @@ function FarmInput({
   const valid = county && crop && water && acresNum > 0;
 
   useEffect(() => { setCrop(""); }, [county]);
+
+  useEffect(() => {
+    if (!loading) { setMsgIdx(0); return; }
+    const id = window.setInterval(() => {
+      setMsgIdx((i) => (i + 1) % LOADING_MESSAGES.length);
+    }, 2000);
+    return () => window.clearInterval(id);
+  }, [loading]);
 
   return (
     <div className="space-y-6">
