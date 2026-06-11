@@ -115,11 +115,12 @@ function App() {
   const killSwitch = () => {
     setPlan(null);
     setKilled(true);
+    setError(null);
+    setLoading(false);
+    setCooldown(0);
     if (typeof window !== "undefined") {
-      localStorage.removeItem("kilimo_profile");
       localStorage.removeItem("kilimo_farm");
     }
-    setProfileState(null);
     setFarmState(null);
     setScreen("input");
   };
@@ -435,11 +436,10 @@ function Dashboard({
     market: { title: "Market Outlook", content: plan.market },
   };
 
-  const shareOnWhatsApp = (tab: Tab) => {
+  const shareTextFor = (tab: Tab) => {
     const meta = tabMeta[tab];
     const summary = (meta.content || "").slice(0, 300);
-    const text = `KilimoSmart Planner — ${meta.title}\nFarm: ${farm.crop}, ${farm.acres} acres, ${farm.county}\n\n${summary}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
+    return `KilimoSmart Planner — ${meta.title}\nFarm: ${farm.crop}, ${farm.acres} acres, ${farm.county}\n\n${summary}`;
   };
 
   return (
@@ -464,12 +464,14 @@ function Dashboard({
         {(["timeline","water","market"] as Tab[]).map((t) => activeTab === t && (
           <div key={t} className="animate-[fadein_.25s_ease]">
             <div className="mb-4 flex justify-end">
-              <button
-                onClick={() => shareOnWhatsApp(t)}
+              <a
+                href={`https://wa.me/?text=${encodeURIComponent(shareTextFor(t))}`}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 rounded-full border border-[oklch(0.62_0.17_150)] bg-[oklch(0.62_0.17_150)] px-3 py-1.5 text-xs font-semibold text-white shadow-[var(--shadow-card)] transition hover:brightness-110"
               >
                 <Share2 className="h-3.5 w-3.5" /> Share on WhatsApp
-              </button>
+              </a>
             </div>
             <article className="prose prose-sm max-w-none prose-headings:text-foreground prose-strong:text-foreground prose-p:text-foreground/85 prose-li:text-foreground/85">
               {tabMeta[t].content ? <ReactMarkdown>{tabMeta[t].content}</ReactMarkdown> : <p className="text-muted-foreground">No {tabMeta[t].title.toLowerCase()} content available.</p>}
