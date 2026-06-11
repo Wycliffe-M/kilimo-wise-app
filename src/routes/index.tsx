@@ -437,6 +437,7 @@ function Dashboard({
 
   const stripMarkdown = (md: string) =>
   md.replace(/#{1,6}\s*/g, "").replace(/\*\*(.*?)\*\*/g, "$1").replace(/\*(.*?)\*/g, "$1").replace(/^[-*]\s+/gm, "• ").trim();
+  
   const shareOnWhatsApp = (tab: Tab) => {
     const meta = tabMeta[tab];
     const summary = stripMarkdown(meta.content || "").slice(0, 300);
