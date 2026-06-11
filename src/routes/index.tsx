@@ -435,11 +435,13 @@ function Dashboard({
     market: { title: "Market Outlook", content: plan.market },
   };
 
+  const stripMarkdown = (md: string) =>
+  md.replace(/#{1,6}\s*/g, "").replace(/\*\*(.*?)\*\*/g, "$1").replace(/\*(.*?)\*/g, "$1").replace(/^[-*]\s+/gm, "• ").trim();
   const shareOnWhatsApp = (tab: Tab) => {
     const meta = tabMeta[tab];
-    const summary = (meta.content || "").slice(0, 300);
+    const summary = stripMarkdown(meta.content || "").slice(0, 300);
     const text = `KilimoSmart Planner — ${meta.title}\nFarm: ${farm.crop}, ${farm.acres} acres, ${farm.county}\n\n${summary}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
   };
 
   return (
