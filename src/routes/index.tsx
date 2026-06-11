@@ -115,11 +115,12 @@ function App() {
   const killSwitch = () => {
     setPlan(null);
     setKilled(true);
+    setError(null);
+    setLoading(false);
+    setCooldown(0);
     if (typeof window !== "undefined") {
-      localStorage.removeItem("kilimo_profile");
       localStorage.removeItem("kilimo_farm");
     }
-    setProfileState(null);
     setFarmState(null);
     setScreen("input");
   };
