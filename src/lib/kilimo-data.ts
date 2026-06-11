@@ -7,7 +7,7 @@ export const COUNTIES = [
   "Migori","Kisii","Nyamira","Nairobi",
 ] as const;
 
-export type EcoZone = "Highlands" | "Semi-Arid" | "Coastal & Tropical";
+export type EcoZone = "Highlands" | "Semi-Arid" | "Coastal & Tropical" | "Lake Basin";
 
 const HIGHLANDS = new Set([
   "Kiambu","Nyeri","Uasin Gishu","Meru","Nyandarua","Kericho","Kirinyaga","Murang'a",
@@ -21,18 +21,22 @@ const SEMI_ARID = new Set([
 const COASTAL = new Set([
   "Kilifi","Kwale","Mombasa","Lamu","Taita Taveta",
 ]);
+const LAKE_BASIN = new Set([
+  "Kisumu","Siaya","Homa Bay","Migori","Busia","Nairobi",
+]);
 
 const CROP_MAP: Record<EcoZone, string[]> = {
   "Highlands": ["Maize","Potatoes","Cabbages","Tea","Coffee","Wheat"],
   "Semi-Arid": ["Sorghum","Millet","Green Grams (Ndengu)","Pigeon Peas","Cowpeas"],
   "Coastal & Tropical": ["Cassava","Coconuts","Cashew Nuts","Maize","Mangoes"],
+  "Lake Basin": ["Rice","Maize","Sweet Potatoes","Beans","Sorghum"],
 };
 
 export function getEcoZone(county: string): EcoZone {
   if (HIGHLANDS.has(county)) return "Highlands";
   if (SEMI_ARID.has(county)) return "Semi-Arid";
   if (COASTAL.has(county)) return "Coastal & Tropical";
-  // Mixed / lake basin counties (Kisumu, Siaya, Homa Bay, Migori, Busia, Nairobi) -> default Highlands-like
+  if (LAKE_BASIN.has(county)) return "Lake Basin";
   return "Highlands";
 }
 
