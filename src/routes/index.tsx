@@ -383,27 +383,35 @@ function FarmInput({
           </div>
         )}
 
-        <div className="mt-6 flex items-center justify-between gap-4">
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
           <div className="text-xs text-muted-foreground">All values are processed locally in your browser session.</div>
-          <button
-            disabled={!valid || loading}
-            onClick={() => onSubmit({ county, crop, acres: acresNum, water })}
-            className="btn-primary inline-flex items-center gap-2"
-          >
-            {loading ? (
-              <><Loader2 className="h-4 w-4 animate-spin" /> Consulting the agronomist…</>
-            ) : (
-              <><Wheat className="h-4 w-4" /> Generate Climate-Smart Calendar</>
+          <div className="flex flex-col items-end gap-1">
+            <button
+              disabled={!valid || loading || cooldown > 0}
+              onClick={() => onSubmit({ county, crop, acres: acresNum, water })}
+              className="btn-primary inline-flex items-center gap-2"
+            >
+              {loading ? (
+                <><Loader2 className="h-4 w-4 animate-spin" /> Consulting the agronomist…</>
+              ) : (
+                <><Wheat className="h-4 w-4" /> Generate Climate-Smart Calendar</>
+              )}
+            </button>
+            {cooldown > 0 && !loading && (
+              <span className="text-xs text-muted-foreground">Please wait {cooldown}s before trying again.</span>
             )}
-          </button>
+          </div>
         </div>
       </Card>
 
       {loading && (
-        <Card className="flex items-center justify-center gap-3 p-10">
-          <Tractor className="h-8 w-8 animate-bounce text-primary" />
-          <Leaf className="h-6 w-6 animate-pulse text-accent" />
-          <span className="text-sm text-muted-foreground">Tilling the data… preparing your shamba calendar.</span>
+        <Card className="flex flex-col items-center justify-center gap-3 p-10">
+          <div className="flex items-center gap-3">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <Tractor className="h-7 w-7 animate-bounce text-primary" />
+            <Leaf className="h-6 w-6 animate-pulse text-accent" />
+          </div>
+          <span className="text-sm text-muted-foreground transition-opacity duration-300">{LOADING_MESSAGES[msgIdx]}</span>
         </Card>
       )}
 
