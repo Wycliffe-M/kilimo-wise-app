@@ -436,11 +436,10 @@ function Dashboard({
     market: { title: "Market Outlook", content: plan.market },
   };
 
-  const shareOnWhatsApp = (tab: Tab) => {
+  const shareTextFor = (tab: Tab) => {
     const meta = tabMeta[tab];
     const summary = (meta.content || "").slice(0, 300);
-    const text = `KilimoSmart Planner — ${meta.title}\nFarm: ${farm.crop}, ${farm.acres} acres, ${farm.county}\n\n${summary}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
+    return `KilimoSmart Planner — ${meta.title}\nFarm: ${farm.crop}, ${farm.acres} acres, ${farm.county}\n\n${summary}`;
   };
 
   return (
