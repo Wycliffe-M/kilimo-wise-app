@@ -4,7 +4,7 @@ import ReactMarkdown from "react-markdown";
 import {
   Sprout, Leaf, Droplets, TrendingUp, ShieldCheck, Activity,
   Lock, Power, MapPin, Wheat, Tractor, CalendarDays, CircleAlert,
-  CheckCircle2, Loader2,
+  CheckCircle2, Loader2, Share2,
 } from "lucide-react";
 import { COUNTIES, WATER_SOURCES, getCropsForCounty, getEcoZone } from "@/lib/kilimo-data";
 import { generatePlan } from "@/lib/kilimo.functions";
