@@ -3,11 +3,13 @@ import { generateText } from "ai";
 import { z } from "zod";
 import { createLovableAiGatewayProvider } from "./ai-gateway.server";
 
+const AI_MODEL = "google/gemini-3-flash-preview";
+
 const Input = z.object({
   name: z.string().min(1),
   county: z.string().min(1),
   crop: z.string().min(1),
-  acres: z.number().positive(),
+  acres: z.number().positive().max(10000, "Please enter a realistic farm size (max 10,000 acres)"),
   water: z.string().min(1),
 });
 
