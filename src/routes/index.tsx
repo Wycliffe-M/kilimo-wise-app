@@ -442,6 +442,20 @@ function Dashboard({
     return `KilimoSmart Planner — ${meta.title}\nFarm: ${farm.crop}, ${farm.acres} acres, ${farm.county}\n\n${summary}`;
   };
 
+  const shareOnWhatsApp = (tab: Tab) => {
+    if (typeof window === "undefined") return;
+
+    const encodedText = encodeURIComponent(shareTextFor(tab));
+    const isMobileDevice = /Android|iPhone|iPad|iPod|IEMobile|Opera Mini/i.test(
+      window.navigator.userAgent,
+    );
+    const shareUrl = isMobileDevice
+      ? `https://wa.me/?text=${encodedText}`
+      : `https://web.whatsapp.com/send?text=${encodedText}`;
+
+    window.open(shareUrl, "_blank", "noopener,noreferrer");
+  };
+
   return (
     <div className="space-y-6">
       <Card className="p-5">
@@ -464,14 +478,13 @@ function Dashboard({
         {(["timeline","water","market"] as Tab[]).map((t) => activeTab === t && (
           <div key={t} className="animate-[fadein_.25s_ease]">
             <div className="mb-4 flex justify-end">
-              <a
-                href={`https://wa.me/?text=${encodeURIComponent(shareTextFor(t))}`}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                type="button"
+                onClick={() => shareOnWhatsApp(t)}
                 className="inline-flex items-center gap-2 rounded-full border border-[oklch(0.62_0.17_150)] bg-[oklch(0.62_0.17_150)] px-3 py-1.5 text-xs font-semibold text-white shadow-[var(--shadow-card)] transition hover:brightness-110"
               >
                 <Share2 className="h-3.5 w-3.5" /> Share on WhatsApp
-              </a>
+              </button>
             </div>
             <article className="prose prose-sm max-w-none prose-headings:text-foreground prose-strong:text-foreground prose-p:text-foreground/85 prose-li:text-foreground/85">
               {tabMeta[t].content ? <ReactMarkdown>{tabMeta[t].content}</ReactMarkdown> : <p className="text-muted-foreground">No {tabMeta[t].title.toLowerCase()} content available.</p>}
