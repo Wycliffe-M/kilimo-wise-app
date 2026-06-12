@@ -77,4 +77,3 @@ function extractJson(raw: string): unknown {
     try { return JSON.parse(fixed); } catch { return null; }
   }
 }
-  });
