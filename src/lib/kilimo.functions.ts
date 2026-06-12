@@ -42,17 +42,38 @@ Produce three sections:
       model: gateway(AI_MODEL),
       system,
       prompt: user,
+      maxOutputTokens: 8192,
+      providerOptions: {
+        lovable: { response_format: { type: "json_object" } },
+      },
     });
 
-    const cleaned = text.trim().replace(/^```(?:json)?/i, "").replace(/```$/,"").trim();
-    try {
-      const parsed = JSON.parse(cleaned);
-      return {
-        timeline: String(parsed.timeline ?? ""),
-        water: String(parsed.water ?? ""),
-        market: String(parsed.market ?? ""),
-      };
-    } catch {
+    const parsed = extractJson(text);
+    if (!parsed || typeof parsed !== "object") {
+      console.error("AI raw output (unparseable):", text);
       throw new Error("The AI returned an unexpected format. Please try again.");
     }
+    const p = parsed as Record<string, unknown>;
+    return {
+      timeline: String(p.timeline ?? ""),
+      water: String(p.water ?? ""),
+      market: String(p.market ?? ""),
+    };
   });
+
+function extractJson(raw: string): unknown {
+  let s = raw.trim().replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
+  const start = s.search(/[{[]/);
+  if (start === -1) return null;
+  const openCh = s[start];
+  const closeCh = openCh === "{" ? "}" : "]";
+  const end = s.lastIndexOf(closeCh);
+  if (end <= start) return null;
+  s = s.slice(start, end + 1);
+  try {
+    return JSON.parse(s);
+  } catch {
+    const fixed = s.replace(/,\s*([}\]])/g, "$1").replace(/[\x00-\x1F\x7F]/g, " ");
+    try { return JSON.parse(fixed); } catch { return null; }
+  }
+}
