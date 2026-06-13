@@ -43,9 +43,6 @@ Produce three sections:
       system,
       prompt: user,
       maxOutputTokens: 8192,
-      providerOptions: {
-        lovable: { response_format: { type: "json_object" } },
-      },
     });
 
     const parsed = extractJson(text);
