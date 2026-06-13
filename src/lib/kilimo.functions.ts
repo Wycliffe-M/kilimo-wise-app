@@ -49,7 +49,7 @@ Produce three sections:
       schema: PlanSchema,
       system,
       prompt: user,
-      maxTokens: 8192,
+      maxOutputTokens: 8192,
     });
 
     return object;
