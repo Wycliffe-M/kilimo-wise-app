@@ -1,9 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
-import { generateObject } from "ai";
+import { generateText } from "ai";
 import { z } from "zod";
 import { createLovableAiGatewayProvider } from "./ai-gateway.server";
 
-const AI_MODEL = "google/gemini-2.0-flash-exp";
+const AI_MODEL = "google/gemini-3-flash-preview";
 
 const Input = z.object({
   name: z.string().min(1),
@@ -11,12 +11,6 @@ const Input = z.object({
   crop: z.string().min(1),
   acres: z.number().positive().max(10000, "Please enter a realistic farm size (max 10,000 acres)"),
   water: z.string().min(1),
-});
-
-const PlanSchema = z.object({
-  timeline: z.string(),
-  water: z.string(),
-  market: z.string(),
 });
 
 export const generatePlan = createServerFn({ method: "POST" })
@@ -44,13 +38,42 @@ Produce three sections:
 2) "water": targeted irrigation, mulching and water-harvesting advice optimized for the ${data.water} water source on ${data.acres} acres.
 3) "market": financial roadmap — projected harvest window, expected KES/kg ranges, warnings about middleman/broker exploitation, and Chama/SACCO savings strategies.`;
 
-    const { object } = await generateObject({
+    const { text } = await generateText({
       model: gateway(AI_MODEL),
-      schema: PlanSchema,
       system,
       prompt: user,
       maxOutputTokens: 8192,
+      providerOptions: {
+        lovable: { response_format: { type: "json_object" } },
+      },
     });
 
-    return object;
+    const parsed = extractJson(text);
+    if (!parsed || typeof parsed !== "object") {
+      console.error("AI raw output (unparseable):", text);
+      throw new Error("The AI returned an unexpected format. Please try again.");
+    }
+    const p = parsed as Record<string, unknown>;
+    return {
+      timeline: String(p.timeline ?? ""),
+      water: String(p.water ?? ""),
+      market: String(p.market ?? ""),
+    };
   });
+
+function extractJson(raw: string): unknown {
+  let s = raw.trim().replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
+  const start = s.search(/[{[]/);
+  if (start === -1) return null;
+  const openCh = s[start];
+  const closeCh = openCh === "{" ? "}" : "]";
+  const end = s.lastIndexOf(closeCh);
+  if (end <= start) return null;
+  s = s.slice(start, end + 1);
+  try {
+    return JSON.parse(s);
+  } catch {
+    const fixed = s.replace(/,\s*([}\]])/g, "$1").replace(/[\x00-\x1F\x7F]/g, " ");
+    try { return JSON.parse(fixed); } catch { return null; }
+  }
+}
